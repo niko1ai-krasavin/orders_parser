@@ -24,9 +24,9 @@ public class CustomCsvFileItemReader implements ItemReader<Order> {
     private BufferedReader bufferedReader;
 
     @Override
-    public Order read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+    public synchronized Order read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
 
-        if(bufferedReader != null) {
+        if (bufferedReader != null) {
             currentLine = bufferedReader.readLine();
             currentNumberOfCurrentLine++;
         }

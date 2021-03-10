@@ -8,12 +8,17 @@ import com.example.orders_parser.writers.CustomItemWriter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.*;
+import org.springframework.batch.core.job.builder.FlowBuilder;
+import org.springframework.batch.core.job.flow.Flow;
+import org.springframework.batch.core.job.flow.support.SimpleFlow;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 
 
 @Configuration()
@@ -27,29 +32,58 @@ public class BatchConfig {
     StepBuilderFactory stepBuilderFactory;
 
     @Bean(name = "job")
-    public Job job(Step stepParseCSV, Step stepParseJSON) {
+    public Job job() {
         return jobBuilderFactory.get("jobBuilder")
-                .start(stepParseCSV)
-                .next(stepParseJSON)
+                .start(splitFlow())
+                .build()
                 .build();
     }
 
     @Bean
-    public Step stepParseCSV(ItemReader<Order> customCsvFileItemReader, ItemWriter<Order> customItemWriter) {
+    public Flow splitFlow() {
+        return new FlowBuilder<SimpleFlow>("splitFlowBuilder")
+                .split(taskExecutor())
+                .add(flowParseCSV() ,flowParseJSON())
+                .build();
+    }
+
+    @Bean
+    public Flow flowParseCSV() {
+        return new FlowBuilder<SimpleFlow>("flowParseCSV")
+                .start(stepParseCSV())
+                .build();
+    }
+
+    @Bean
+    public Flow flowParseJSON() {
+        return new FlowBuilder<SimpleFlow>("flowParseJSON")
+                .start(stepParseJSON())
+                .build();
+    }
+
+    @Bean
+    public Step stepParseCSV() {
         return stepBuilderFactory.get("stepBuilderForFilesCSV")
-                .<Order, Order>chunk(1)
-                .reader(customCsvFileItemReader)
-                .writer(customItemWriter)
+                .<Order, Order>chunk(10)
+                .reader(customCsvFileItemReader())
+                .writer(customItemWriter())
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
     @Bean
-    public Step stepParseJSON(ItemReader<Order> customJsonFileItemReader,ItemWriter<Order> customItemWriter) {
+    public Step stepParseJSON() {
         return stepBuilderFactory.get("stepBuilderForFilesJSON")
-                .<Order, Order> chunk(1)
-                .reader(customJsonFileItemReader)
-                .writer(customItemWriter)
+                .<Order, Order> chunk(10)
+                .reader(customJsonFileItemReader())
+                .writer(customItemWriter())
+                .taskExecutor(taskExecutor())
                 .build();
+    }
+
+    @Bean()
+    public TaskExecutor taskExecutor() {
+        return new SimpleAsyncTaskExecutor("spring_batch");
     }
 
     @Bean(name = "customCsvFileItemReader")
