@@ -3,6 +3,7 @@
 File parsing and data conversion are performed parallel with several threads.
 
 The app is developed using:
+
 - Java 8
 - Spring Boot
 - Spring Batch
@@ -15,13 +16,17 @@ The application requires *two* files.
 
 One file is in <code> .csv </code> format and another file is in <code> .json </code> format.
 
+After the final building of the application, the files for parsing should be located along the path <code> ./classes/ </code> relative to the directory where the executable file <code> .jar </code> is located.
+
 #### Example of <code> .csv </code> file entries
 
 ```
 1,100,USD,оплата заказа
 2,123,EUR,оплата заказа
 ```
+
 Column assignment:
+
 - order identifier
 - amount
 - currency
@@ -44,9 +49,10 @@ Column assignment:
 ```
 
 Column assignment:
-- *id* - identifier of order 
-- *amount* - amount of order 
-- *currency* - currency of order 
+
+- *id* - identifier of order
+- *amount* - amount of order
+- *currency* - currency of order
 - *comment* - comment on the order
 - *filename* - source file name
 - *line*  - line number of the source file
@@ -57,6 +63,31 @@ Column assignment:
 ### The application is built by the command
 
 <code>mvn clean install</code>
+
+For the final build of the application, it is recommended to change the <code> activeByDefault </code> parameter of the <code> pom.xml </code> file as shown below:
+
+```
+<profiles>
+    <profile>
+        <id>dev</id>
+        <properties>
+            <activatedProperties>dev</activatedProperties>
+        </properties>
+        <activation>
+            <activeByDefault>false</activeByDefault>
+        </activation>
+    </profile>
+    <profile>
+        <id>release</id>
+        <properties>
+            <activatedProperties>release</activatedProperties>
+        </properties>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
+</profiles>
+```
 
 ### Launching the application for execution
 
@@ -75,6 +106,7 @@ Enter the following command, if you **do not see the letters of the Russian lang
 Парсинг файлов и конвертирование данных выполняются параллельно в несколько потоков.
 
 Приложение написано с использованием:
+
 - Java 8
 - Spring Boot
 - Spring Batch
@@ -83,9 +115,11 @@ Enter the following command, if you **do not see the letters of the Russian lang
 
 ### Входные данные для работы приложения
 
-Для работы приложения необходимы *два* файла.  
+Для работы приложения необходимы *два* файла.
 
-Один файл в формате <code>.csv</code>, а другой файл в формате <code>.json</code>.
+Один файл в формате <code>.csv</code>, а другой файл в формате <code>.json</code>
+
+После окончательной сборки приложения файлы для парсинга должны располагаться по пути <code>./classes/</code> относительно директории в которой находится исполняемый файл <code>.jar</code>
 
 #### Пример записей файла <code>.csv</code>
 
@@ -93,7 +127,9 @@ Enter the following command, if you **do not see the letters of the Russian lang
 1,100,USD,оплата заказа
 2,123,EUR,оплата заказа
 ```
+
 Назначение столбцов:
+
 - идентификатор ордера
 - сумма
 - валюта
@@ -106,7 +142,7 @@ Enter the following command, if you **do not see the letters of the Russian lang
 {"orderId":3,"amount":1.24,"currency":"EUR","comment":"оплата заказа"}
 ```
 
-#### Пример результата работы программы 
+#### Пример результата работы программы
 
 ```
 {"id":1, "amount":100.0, "comment":"оплата заказа", "filename":"orders.csv", "line":1, "result":"OK"}
@@ -114,7 +150,9 @@ Enter the following command, if you **do not see the letters of the Russian lang
 {"id":3, "amount":100.0, "comment":"оплата заказа", "filename":"orders.json", "line":1, "result":"OK"}
 {"id":4, "amount":123.0, "comment":"оплата заказа", "filename":"orders.json", "line":2, "result":"OK"}
 ```
+
 Назначение столбцов:
+
 - *id* - идентификатор заказа
 - *amount* - сумма заказа
 - *currency* - валюта суммы заказа
@@ -122,16 +160,41 @@ Enter the following command, if you **do not see the letters of the Russian lang
 - *filename* - имя исходного файла
 - *line* - номер строки исходного файла
 - *result* - результат парсинга записи исходного файла:
-  - *OK* - если запись конвертирована корректно
-  - *Описание ошибки* - если запись конвертировать не удалось 
+    - *OK* - если запись конвертирована корректно
+    - *Описание ошибки* - если запись конвертировать не удалось
 
 ### Сборка приложения осуществляется командой
 
 <code>mvn clean install</code>
 
+Для окончательной сборки приложения рекомендуется изменить параметр <code>activeByDefault</code> файла <code>pom.xml</code> как показано ниже:
+
+```
+<profiles>
+    <profile>
+        <id>dev</id>
+        <properties>
+            <activatedProperties>dev</activatedProperties>
+        </properties>
+        <activation>
+            <activeByDefault>false</activeByDefault>
+        </activation>
+    </profile>
+    <profile>
+        <id>release</id>
+        <properties>
+            <activatedProperties>release</activatedProperties>
+        </properties>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
+</profiles>
+```
+
 ### Запуск приложения на исполнение
 
-Пример команды запуска: 
+Пример команды запуска:
 
 <code>java -jar orders_parser.jar orders.csv orders.json</code>
 
