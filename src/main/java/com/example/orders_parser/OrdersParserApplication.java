@@ -36,45 +36,99 @@ public class OrdersParserApplication implements CommandLineRunner {
     @Qualifier("customJsonFileItemReader")
     CustomJsonFileItemReader customJsonFileItemReader;
 
+    private static final String PATH_TO_DIRECTORY = "src/main/resources/";  //for build and deploy: "./classes/"
+    private static File fileCSV;
+    private static File fileJson;
+
     public static void main(String[] args) {
         SpringApplication.run(OrdersParserApplication.class, args);
-        //logging.pattern.console=
     }
 
     @Override
     public void run(String... args) throws Exception {
 
-        File fileCSV = new File("src/main/resources/", args[0]);
-        File fileJson = new File("src/main/resources/", args[1]);
-        /*   //for deploy
-        File fileCSV = new File("./classes/", args[0]);
-        File fileJson = new File("./classes/", args[1]);
-         */
+        if(isCountOfFilesValid(args)) {
+            if(isFormatOfFilesValid(args)) {
+                setFiles(args);
+            }
+        }
 
-        FileReader fileReaderCSV = new FileReader(fileCSV);
-        BufferedReader brCSV = new BufferedReader(fileReaderCSV);
-        customCsvFileItemReader.setFile(fileCSV);
-        customCsvFileItemReader.setBufferedReader(brCSV);
+        if (fileCSV.isFile() && fileCSV.canRead()) {
+            FileReader fileReaderCSV = new FileReader(fileCSV);
+            BufferedReader brCSV = new BufferedReader(fileReaderCSV);
+            customCsvFileItemReader.setFile(fileCSV);
+            customCsvFileItemReader.setBufferedReader(brCSV);
+        } else {
+            System.out.println("The file '" + fileCSV.getName() + "' does not exist or is not readable.\n" +
+                    "Result: The program was not executed.");
+            System.exit(0);
+        }
 
-        FileReader fileReaderJson = new FileReader(fileJson);
-        BufferedReader brJSON = new BufferedReader(fileReaderJson);
-        customJsonFileItemReader.setFile(fileJson);
-        customJsonFileItemReader.setBufferedReader(brJSON);
+        if (fileJson.isFile() && fileJson.canRead()) {
+            FileReader fileReaderJson = new FileReader(fileJson);
+            BufferedReader brJSON = new BufferedReader(fileReaderJson);
+            customJsonFileItemReader.setFile(fileJson);
+            customJsonFileItemReader.setBufferedReader(brJSON);
+        } else {
+            System.out.println("The file '" + fileJson.getName() + "' does not exist or is not readable.\n" +
+                    "Result: The program was not executed.");
+            System.exit(0);
+        }
 
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
         jobParametersBuilder.addString("file.csv", fileCSV.toString());
 
         try {
             jobLauncher.run(job, jobParametersBuilder.toJobParameters());
-        } catch (JobExecutionAlreadyRunningException e) {
-            e.printStackTrace();
-        } catch (JobRestartException e) {
-            e.printStackTrace();
-        } catch (JobInstanceAlreadyCompleteException e) {
-            e.printStackTrace();
-        } catch (JobParametersInvalidException e) {
+        } catch (JobExecutionAlreadyRunningException | JobRestartException
+                | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
             e.printStackTrace();
         }
     }
+
+    private boolean isCountOfFilesValid(String[] args) {
+        if (args.length > 2) {
+            System.out.println("You specified more than 2 files to parsing.\n" +
+                    "Specify exactly 2 files. One file in '.csv' format, another file in '.json' format.\n" +
+                    "Result: The program was not executed.");
+            System.exit(0);
+        } else if (args.length == 0) {
+            System.out.println("You didn't specify files to parse.\n" +
+                    "Specify exactly 2 files. One file in '.csv' format, another file in '.json' format.\n" +
+                    "Result: The program was not executed.");
+            System.exit(0);
+        }
+        return true;
+    }
+
+    private boolean isFormatOfFilesValid(String[] args) {
+        int flag = 0;
+        for (String arg : args) {
+            if (arg.matches(".+\\.csv$")) {
+                flag++;
+            }
+            if (arg.matches(".+\\.json$")) {
+                flag++;
+            }
+        }
+        if(flag != args.length) {
+            System.out.println("You specified files with the wrong format.\n" +
+                    "Specify exactly 2 files. One file in '.csv' format, another file in '.json' format.\n" +
+                    "Result: The program was not executed.");
+            System.exit(0);
+        }
+        return true;
+    }
+
+    private void setFiles(String[] args) {
+        for (byte i = 0; i < args.length; i++) {
+            if (args[i].matches(".+\\.csv$")) {
+                fileCSV = new File(PATH_TO_DIRECTORY, args[i]);
+            } else if (args[i].matches(".+\\.json$")) {
+                fileJson = new File(PATH_TO_DIRECTORY, args[i]);
+            }
+        }
+    }
+
 
 }
