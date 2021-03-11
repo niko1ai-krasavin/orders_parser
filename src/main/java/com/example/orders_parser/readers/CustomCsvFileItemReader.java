@@ -1,14 +1,13 @@
 package com.example.orders_parser.readers;
 
+import com.example.orders_parser.OrdersParserApplication;
 import com.example.orders_parser.entities.Order;
 import com.example.orders_parser.mappers.CustomOrderMapper;
 
 import lombok.Data;
 
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.NonTransientResourceException;
-import org.springframework.batch.item.ParseException;
-import org.springframework.batch.item.UnexpectedInputException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
 
@@ -23,8 +22,11 @@ public class CustomCsvFileItemReader implements ItemReader<Order> {
     private File file;
     private BufferedReader bufferedReader;
 
+    @Autowired
+    CustomOrderMapper customOrderMapper;
+
     @Override
-    public synchronized Order read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+    public synchronized Order read() throws Exception {
 
         if (bufferedReader != null) {
             currentLine = bufferedReader.readLine();
@@ -36,16 +38,19 @@ public class CustomCsvFileItemReader implements ItemReader<Order> {
             String[] fieldSet = getFieldSetFromLine(currentLine);
             currentLine = null;
 
-            CustomOrderMapper customOrderMapper =
-                    new CustomOrderMapper(fieldSet, currentNumberOfCurrentLine, file.getName(), currentStatusOfCurrentLine);
+            customOrderMapper.setFieldSet(fieldSet);
+            customOrderMapper.setLine(currentNumberOfCurrentLine);
+            customOrderMapper.setFilename(file.getName());
+            customOrderMapper.setResult(currentStatusOfCurrentLine);
 
             return customOrderMapper.getOrder();
         }
-        return null;
-    }
 
-    private String[] getFieldSetFromLine(String line) {
-        return line.split(",");
+        setDefaultValuesForFields();
+
+        OrdersParserApplication.closeResourceForCSV();
+
+        return null;
     }
 
     public void setFile(File file) {
@@ -55,4 +60,17 @@ public class CustomCsvFileItemReader implements ItemReader<Order> {
     public void setBufferedReader(BufferedReader bufferedReader) {
         this.bufferedReader = bufferedReader;
     }
+
+    private void setDefaultValuesForFields() {
+        currentLine = null;
+        currentNumberOfCurrentLine = 0;
+        currentStatusOfCurrentLine = "OK";
+        file = null;
+        bufferedReader = null;
+    }
+
+    private String[] getFieldSetFromLine(String line) {
+        return line.split(",");
+    }
+
 }

@@ -37,8 +37,15 @@ public class OrdersParserApplication implements CommandLineRunner {
     CustomJsonFileItemReader customJsonFileItemReader;
 
     private static final String PATH_TO_DIRECTORY = "src/main/resources/";  //for build and deploy: "./classes/"
+
     private static File fileCSV;
     private static File fileJson;
+
+    private static FileReader fileReaderForCSV;
+    private static FileReader fileReaderForJSON;
+
+    private static BufferedReader bufferedReaderForCSV;
+    private static BufferedReader bufferedReaderForJSON;
 
     public static void main(String[] args) {
         SpringApplication.run(OrdersParserApplication.class, args);
@@ -47,17 +54,18 @@ public class OrdersParserApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        if(isCountOfFilesValid(args)) {
-            if(isFormatOfFilesValid(args)) {
+        if (isCountOfFilesValid(args)) {
+            if (isFormatOfFilesValid(args)) {
                 setFiles(args);
             }
         }
 
         if (fileCSV.isFile() && fileCSV.canRead()) {
-            FileReader fileReaderCSV = new FileReader(fileCSV);
-            BufferedReader brCSV = new BufferedReader(fileReaderCSV);
+            fileReaderForCSV = new FileReader(fileCSV);
+            bufferedReaderForCSV = new BufferedReader(fileReaderForCSV);
+
             customCsvFileItemReader.setFile(fileCSV);
-            customCsvFileItemReader.setBufferedReader(brCSV);
+            customCsvFileItemReader.setBufferedReader(bufferedReaderForCSV);
         } else {
             System.out.println("The file '" + fileCSV.getName() + "' does not exist or is not readable.\n" +
                     "Result: The program was not executed.");
@@ -65,10 +73,11 @@ public class OrdersParserApplication implements CommandLineRunner {
         }
 
         if (fileJson.isFile() && fileJson.canRead()) {
-            FileReader fileReaderJson = new FileReader(fileJson);
-            BufferedReader brJSON = new BufferedReader(fileReaderJson);
+            fileReaderForJSON = new FileReader(fileJson);
+            bufferedReaderForJSON = new BufferedReader(fileReaderForJSON);
+
             customJsonFileItemReader.setFile(fileJson);
-            customJsonFileItemReader.setBufferedReader(brJSON);
+            customJsonFileItemReader.setBufferedReader(bufferedReaderForJSON);
         } else {
             System.out.println("The file '" + fileJson.getName() + "' does not exist or is not readable.\n" +
                     "Result: The program was not executed.");
@@ -84,6 +93,26 @@ public class OrdersParserApplication implements CommandLineRunner {
                 | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean closeResourceForCSV() {
+        try {
+            bufferedReaderForCSV.close();
+            fileReaderForCSV.close();
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean closeResourceForJSON() {
+        try {
+            bufferedReaderForJSON.close();
+            fileReaderForJSON.close();
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
 
     private boolean isCountOfFilesValid(String[] args) {
@@ -111,7 +140,7 @@ public class OrdersParserApplication implements CommandLineRunner {
                 flag++;
             }
         }
-        if(flag != args.length) {
+        if (flag != args.length) {
             System.out.println("You specified files with the wrong format.\n" +
                     "Specify exactly 2 files. One file in '.csv' format, another file in '.json' format.\n" +
                     "Result: The program was not executed.");

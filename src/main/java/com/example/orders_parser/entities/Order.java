@@ -3,7 +3,6 @@ package com.example.orders_parser.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,6 @@ import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class Order implements Serializable {
 
     private long id;
@@ -41,7 +39,7 @@ public class Order implements Serializable {
         return "{" +
                 "\"id\":" + id +
                 ", \"amount\":" + amount +
-                ", \"currency\":\"" + currency + '\"' +
+                //", \"currency\":\"" + currency + '\"' +
                 ", \"comment\":\"" + comment + '\"' +
                 ", \"filename\":\"" + filename + '\"' +
                 ", \"line\":" + line +

@@ -1,5 +1,6 @@
 package com.example.orders_parser.readers;
 
+import com.example.orders_parser.OrdersParserApplication;
 import com.example.orders_parser.entities.Order;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -7,9 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.NonTransientResourceException;
-import org.springframework.batch.item.ParseException;
-import org.springframework.batch.item.UnexpectedInputException;
 
 import lombok.Data;
 
@@ -28,7 +26,7 @@ public class CustomJsonFileItemReader implements ItemReader<Order> {
     private BufferedReader bufferedReader;
 
     @Override
-    public synchronized Order read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+    public synchronized Order read() throws Exception {
 
         if (bufferedReader != null) {
             currentLine = bufferedReader.readLine();
@@ -48,7 +46,20 @@ public class CustomJsonFileItemReader implements ItemReader<Order> {
 
             return order;
         }
+
+        setDefaultValuesForFields();
+
+        OrdersParserApplication.closeResourceForJSON();
+
         return null;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public void setBufferedReader(BufferedReader bufferedReader) {
+        this.bufferedReader = bufferedReader;
     }
 
     private Order getOrderFromLine(String line) {
@@ -69,11 +80,11 @@ public class CustomJsonFileItemReader implements ItemReader<Order> {
         }
     }
 
-    public void setFile(File file) {
-        this.file = file;
-    }
-
-    public void setBufferedReader(BufferedReader bufferedReader) {
-        this.bufferedReader = bufferedReader;
+    private void setDefaultValuesForFields() {
+        currentLine = null;
+        currentNumberOfCurrentLine = 0;
+        currentStatusOfCurrentLine = "OK";
+        file = null;
+        bufferedReader = null;
     }
 }

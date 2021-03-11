@@ -1,6 +1,7 @@
 package com.example.orders_parser.configurations;
 
 import com.example.orders_parser.entities.Order;
+import com.example.orders_parser.mappers.CustomOrderMapper;
 import com.example.orders_parser.readers.CustomCsvFileItemReader;
 import com.example.orders_parser.readers.CustomJsonFileItemReader;
 import com.example.orders_parser.writers.CustomItemWriter;
@@ -15,7 +16,6 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -23,7 +23,6 @@ import org.springframework.core.task.TaskExecutor;
 
 @Configuration()
 @EnableBatchProcessing()
-@ComponentScan({"com/example/orders_parser/readers", "com/example/orders_parser/writers"})
 public class BatchConfig {
 
     @Autowired
@@ -100,4 +99,7 @@ public class BatchConfig {
     public ItemWriter<Order> customItemWriter() {
         return new CustomItemWriter();
     }
+
+    @Bean
+    public CustomOrderMapper customOrderMapper() {return new CustomOrderMapper();}
 }
