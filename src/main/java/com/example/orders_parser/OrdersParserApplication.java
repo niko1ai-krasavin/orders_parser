@@ -1,5 +1,6 @@
 package com.example.orders_parser;
 
+import com.example.orders_parser.entities.Order;
 import com.example.orders_parser.readers.CustomCsvFileItemReader;
 import com.example.orders_parser.readers.CustomJsonFileItemReader;
 
@@ -10,16 +11,21 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class OrdersParserApplication implements CommandLineRunner {
+
+    public static Map<Long, Order> mapOrders = new HashMap<>();
 
     @Autowired
     JobLauncher jobLauncher;
@@ -36,8 +42,9 @@ public class OrdersParserApplication implements CommandLineRunner {
     @Qualifier("customJsonFileItemReader")
     CustomJsonFileItemReader customJsonFileItemReader;
 
-    private static final String PATH_TO_DIRECTORY = "src/main/resources/";  //for build and deploy: "./classes/"
-
+    @Value("${path_to_directory}")
+    private String PATH_TO_DIRECTORY;   //for release: "./classes/"
+                                        //for develop: "src/main/resources/"
     private static File fileCSV;
     private static File fileJson;
 
@@ -93,6 +100,8 @@ public class OrdersParserApplication implements CommandLineRunner {
                 | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
             e.printStackTrace();
         }
+
+        printOrdersFromMap();
     }
 
     public static boolean closeResourceForCSV() {
@@ -159,5 +168,9 @@ public class OrdersParserApplication implements CommandLineRunner {
         }
     }
 
-
+    private void printOrdersFromMap() {
+        for(Order order : mapOrders.values()) {
+            System.out.println(order);
+        }
+    }
 }
